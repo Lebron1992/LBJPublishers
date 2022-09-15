@@ -33,10 +33,9 @@ final class ProgressResultTests: XCTestCase {
           expectation.fulfill()
         },
         receiveValue: {
-          let (progress, result) = $0
-          progressValuesResult.append(progress)
-          if progress == 1 {
-            stringExpected = result
+          progressValuesResult.append($0.progress)
+          if $0.progress == 1 {
+            stringExpected = $0.result
           }
         })
       .store(in: &subscriptions)
@@ -68,10 +67,9 @@ final class ProgressResultTests: XCTestCase {
       .sink(
         receiveCompletion: { _ in },
         receiveValue: {
-          let (progress, result) = $0
-          progressValuesResult.append(progress)
-          if progress == 1 {
-            stringExpected = result
+          progressValuesResult.append($0.progress)
+          if $0.progress == 1 {
+            stringExpected = $0.result
           }
         })
       .store(in: &subscriptions)

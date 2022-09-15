@@ -6,7 +6,7 @@ extension Publishers {
   /// A publisher that emits a tuple representing the progress(range: 0 ~ 1) and result.
   public final class ProgressResult<R, Loader: ProgressResultLoader>: Publisher where R == Loader.R {
 
-    public typealias Output = (Double, R?)
+    public typealias Output = LoadResult<R>
     public typealias Failure = Error
 
     let loader: Loader
@@ -23,7 +23,7 @@ extension Publishers {
 }
 
 private final class ProgressResultSubscription<R, Loader: ProgressResultLoader, S: Subscriber>: Subscription
-where R == Loader.R, S.Input == (Double, R?), S.Failure == Error {
+where R == Loader.R, S.Input == LoadResult<R>, S.Failure == Error {
 
   var subscriber: S?
   let loader: Loader
@@ -36,11 +36,11 @@ where R == Loader.R, S.Input == (Double, R?), S.Failure == Error {
   func request(_ demand: Subscribers.Demand) {
     loader.startLoading(
       progress: { [weak self] progress in
-        _ = self?.subscriber?.receive((progress, nil))
+        _ = self?.subscriber?.receive(.init(progress: progress, result: nil))
       },
       completion: { [weak self] result, error in
         if let result = result {
-          _ = self?.subscriber?.receive((1, result))
+          _ = self?.subscriber?.receive(.init(progress: 1, result: result))
           self?.subscriber?.receive(completion: .finished)
 
         } else if let error = error {
@@ -70,4 +70,18 @@ public protocol ProgressResultLoader: AnyObject {
 
   /// Cancel loading the result.
   func cancelLoading()
+}
+
+/// The value type emitted by `Publishers.ProgressResult`.
+public struct LoadResult<R> {
+  /// The loading progress.
+  public let progress: Double
+
+  /// The result after loading completed.
+  public let result: R?
+
+  public init(progress: Double, result: R?) {
+    self.progress = progress
+    self.result = result
+  }
 }
