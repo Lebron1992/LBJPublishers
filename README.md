@@ -1,3 +1,3 @@
 # LBJPublishers
 
-A description of this package.
+A set of custom publishers based on `Combine` framework.
